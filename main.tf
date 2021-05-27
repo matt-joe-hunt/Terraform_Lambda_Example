@@ -3,5 +3,5 @@ provider "aws" {
 }
 
 module "Lambda" {
-  source                             = "./Lambda"
+  source = "./Lambda"
 }
