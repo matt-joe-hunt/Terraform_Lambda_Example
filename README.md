@@ -1,37 +1,24 @@
 ## Introduction
 
-# Justification
+In this session we will be looking at a straight forward implementation of a Lambda Function.  This will be our first foray into Serverless computing with AWS, and as Serverless solutions become more and more popular, more systems are being built using Lambda Functions and leveraging the power that they bring.
 
-I'm a firm believer that when learning a new technology that keeping things simple in the first instance is of paramount importance.  Frankly all the frilly bits can come later!
+We will only be working with one module in this session, and a handful of resources from the AWS provider focusing on the basics of deploying a Lambda Function.
 
-What I offer here is a basic example of deploying an AWS infrastructure using Terraform.  You can use this simple structure to deploy a Lambda function behind an API Gateway (API GW), the Lambda uses the simple code described in the *sample.js* file.
+## Lambda Module - data.tf
 
-Do not expect this to be complete with all industry best practices, however if you are new to working with Terraform then this could be a good sample project to start with! My hope is that you will find some use in 'poking' this implementation to see how it works and changing it to see how it breaks. Below I will explain what some important sections of the code are doing so that you can start to build your own deployments.
+To build our Lambda we need to have a function written in one of the accepted languages as sourcecode. In this example we will be working with JavaScript, and the sourcecode is the *sample.js* file, as this is a basic implementation of a Lambda function I have kept things simple.
 
-## What is going on?
+However we cannot use this *sample.js* file as it is to deploy our Lambda, we first need to package it into a zip file.  In the *data.tf* file we are using a *archive_file* data resource to take the *sample.js* and package it as *lambda_function.zip*.  We will then be referring this file in our *main.tf* as we build our Lambda Function.
 
-To create the structure of this project I have chosen to split the resources that I am creating into modules, these modules means that my deployment is easier to write, debug and maintain.
+## Lambda Module - main.tf
 
-You will notice a consistent style within the project, the terraform code that is written for each module is grouped into 3 files, and these 3 .tf files also appear in the root of the project.
+In the *main.tf* for this module the first resource that we are creating is Lambda Function itself, we need to pass in a few attributes to describe the Lambda that we want to create, which I will outline below.
 
-### main.tf
+- filename - We need to define the name of the file that holds the source code for our Lambda.  In this example we are using a zip file that is stored in the same repository as our Terraform code in the *data* directory.
+- function_name - We need a way to refer to our Lambda once we have created it, ensure that this name is sensible and unique for the region in which you are working.
+- role - We need to supply our Lambda with an IAM role for it to assume, we are defining this role later in the file in its own resource.
+- handler - the name of the function/method within the code that we want to execute, how you will refer to this differs depending upon which language you are working with.
+- source_code_hash - This handy attribute allows us to more easily trigger updates to our Lambda Function once it has been deployed. We need to supply the attribute with a base64 encoded hash of the file that we are deploying, we are leveraging the output from our *lambda_zip* data resource to do this.
+- runtime - Choose from the limited number of runtime environments that AWS offers, in our example, as we are working with JavaScript, we are using the *nodejs12.x* environment.
 
-In this file the terraform resources are described, unless you are looking in the root of the project structure in which case the main.tf file describes the modules used in the project.
-
-### variables.tf
-
-In this file the variables that are used by the project and the various modules are defined, you will find that most of the variables are defined in the variables.tf file in the root of the project, making working with the project a little easier.
-
-### outputs.tf
-
-Often the least used of the 3 files, here the output from the resources created are defined.  This can be useful if you want to print some output to the console when the deployment is comepleted, as we are in this example.  This file can also be used to pass the output from one module to be used with another, you can also see an example of this here.
-
-## Project Root
-
-## API_Gateway
-
-## Lambda
-
-```
-{"key":"value"}
-```
+And now for the *aws_iam_role* resource, this is where we are defining the execution role that our Lambda function requires. This role grants our Lambda function the permissions that it needs in order to access the various AWS services and resources required.  You can find the policy document, *policy.json*, that we are using in the *Lambda/data* directory.
